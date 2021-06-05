@@ -45,11 +45,13 @@ public class ImageUtil {
         if (isImage(imgFile)) {
             File webpFile =
                     new File(imgFile.getPath().substring(0, imgFile.getPath().lastIndexOf("."))+".webp");
-            Tools.Companion.cmd("cwebp", imgFile.getPath()+" -o +"+webpFile.getPath()+" -m 6 -quiet");
+
+            logger.log(LogLevel.ERROR,"convert2Webp "+webpFile.getPath() + "----"+imgFile.getPath());
+            Tools.cmd("cwebp", imgFile.getPath()+" -o +"+webpFile.getPath()+" -m 6 -quiet");
             if (webpFile.length() < imgFile.length()) {
                 if (imgFile.exists()) {
-//                    imgFile.delete();
-                    logger.log(LogLevel.ERROR,"sssssssssssssss"+webpFile.exists());
+                    imgFile.delete();
+
                 }
             } else {
                 if (webpFile.exists()) {

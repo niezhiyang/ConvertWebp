@@ -67,6 +67,7 @@ public class CwebpPlugin implements Plugin<Project> {
 
         mProject = project;
         mLogger = project.getLogger();
+        LoggerUtil.sLogger = mLogger;
         printAllTask();
         convertTask();
     }
@@ -129,18 +130,16 @@ public class CwebpPlugin implements Plugin<Project> {
         // 这是 cwebp 工具的地址
         FileUtil.TOOLS_DIRPATH = rootPath + "/mctools/";
 
-        // 创建自己的写的task
-//        ConvertTask convertTask = mProject.getTasks().create("convertTask" + capitalizeName, ConvertTask.class);
-
+        // 创建自己任务
         Task convertTask = mProject.task("convertTask" + capitalizeName);
 
 
-//        // 静态依赖到合并资源的task
-//        mergeResources.dependsOn(convertTask);
+//        //获得android的mergeDebugResources任务
+//        final Task proguardTask =
+//                mProject.getTasks().findByName("merge"+capitalizeName+"Resources");
 
-
-
-
+        imageFileList.clear();
+        cacheList.clear();
         convertTask.doLast(new Action<Task>() {
             @Override
             public void execute(@NotNull Task task) {
@@ -155,22 +154,7 @@ public class CwebpPlugin implements Plugin<Project> {
             }
         });
 
-        Task chmodTask = mProject.task("chmod"+capitalizeName);
-        chmodTask.doLast(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                //chmod if linux
-//                if (Tools.isLinux()) {
-//                    Tools.chmod();
-//                }
-            }
-        });
 
-
-        (mProject.getTasks().findByName(chmodTask.getName())).dependsOn(mergeResources.getTaskDependencies().getDependencies(mergeResources));
-        Task byName = mProject.getTasks().findByName(convertTask.getName());
-        Task byName1 = mProject.getTasks().findByName(chmodTask.getName());
-        byName.dependsOn(byName1);
         mergeResources.dependsOn(mProject.getTasks().findByName(convertTask.getName()));
 
 
@@ -198,7 +182,7 @@ public class CwebpPlugin implements Plugin<Project> {
         if (new File(path).exists()) {
             oldSize += new File(path).length();
         }
-        ImageUtil.convert2Webp(file,mLogger);
+        ConvertWebpUtil.securityFormatWebp(file, mConfig,mProject,mLogger);
         countNewSize(path);
         mLogger.log(LogLevel.ERROR,"问题22222222222");
     }

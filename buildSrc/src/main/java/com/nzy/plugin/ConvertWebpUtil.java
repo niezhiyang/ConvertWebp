@@ -5,6 +5,7 @@ import com.android.build.gradle.AppExtension;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 
 import java.io.File;
 
@@ -15,7 +16,7 @@ import java.io.File;
 public class ConvertWebpUtil {
     private static final int VERSION_SUPPORT_WEBP = 14;
 
-    public static void securityFormatWebp(File file, WebpConfig config, Project project) {
+    public static void securityFormatWebp(File file, WebpConfig config, Project project, Logger logger) {
         AppExtension appExtension = project.getExtensions().getByType(AppExtension.class);
         if (!(appExtension.getDefaultConfig().getMinSdk() > VERSION_SUPPORT_WEBP)) {
             throw new GradleException("转化webp，必须大于14");
@@ -44,11 +45,17 @@ public class ConvertWebpUtil {
 
     private static void formatWebp(File imgFile, Project project) {
         if (ImageUtil.isImage(imgFile)) {
-            String filePath = imgFile.getPath().substring(0, imgFile.getPath().lastIndexOf(".")) + "..webp";
+            String filePath = imgFile.getPath().substring(0, imgFile.getPath().lastIndexOf(".")) + ".webp";
             File webpFile = new File(filePath);
-            Tools.cmd("cwebp", "${imgFile.path} -o ${webpFile.path} -m 6 -quiet");
+            Tools.cmd("cwebp", imgFile.getPath()+" -o "+webpFile.getPath()+" -m 6 -quiet");
+            project.getLogger().log(LogLevel.ERROR, imgFile.getName() + " 大小是："+imgFile.length()+"----web的大小是："+webpFile.length());
+
+
+            if(imgFile.getName().contains("_for")){
+                project.getLogger().log(LogLevel.ERROR, "pppppppppppppp:"+imgFile.getPath());
+
+            }
             if (webpFile.length() < imgFile.length()) {
-                project.getLogger().log(LogLevel.ERROR, imgFile.getPath(), imgFile.length(), webpFile.length());
                 if (imgFile.exists()) {
                     imgFile.delete();
                 }

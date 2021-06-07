@@ -121,29 +121,24 @@ public class CwebpPlugin implements Plugin<Project> {
         //首字母大写
         String capitalizeName = Utils.capitalize(variantName);
 
-        //获得 mergeResources 的task
-        MergeResources mergeResources = variant.getMergeResourcesProvider().get();
-
-
         // 这是项目的根路径
         String rootPath = mProject.getRootDir().getPath();
 
         // 这是 cwebp 工具的地址
         FileUtil.TOOLS_DIRPATH = rootPath + "/mctools/";
 
-        // 创建自己任务
-        Task convertTask = mProject.task("convertTask" + capitalizeName);
+
 
         // 第一种拿到资源
         getRes1(capitalizeName);
 
 
         // 第二种拿到资源
-        //getRes2(variant, mergeResources, convertTask);
+        //getRes2(variant,  capitalizeName);
 
 
         // 第三种拿到资源
-        //getRes3(mergeResources);
+        //getRes3(variant);
 
     }
 
@@ -275,9 +270,10 @@ public class CwebpPlugin implements Plugin<Project> {
     /**
      * 第三种拿到资源的方法
      *
-     * @param mergeResources
      */
-    private void getRes3(MergeResources mergeResources) {
+    private void getRes3(ApplicationVariant variant) {
+        //获得 mergeResources 的task
+        MergeResources mergeResources = variant.getMergeResourcesProvider().get();
         mergeResources.doFirst(new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -295,9 +291,12 @@ public class CwebpPlugin implements Plugin<Project> {
     /**
      * 第二种拿到资源的方法
      *
-     * @param mergeResources
      */
-    private void getRes2(ApplicationVariant variant, MergeResources mergeResources, Task convertTask) {
+    private void getRes2(ApplicationVariant variant, String capitalizeName) {
+        //获得 mergeResources 的task
+        MergeResources mergeResources = variant.getMergeResourcesProvider().get();
+        // 创建自己任务
+        Task convertTask = mProject.task("convertTask" + capitalizeName);
         convertTask.doLast(new Action<Task>() {
             @Override
             public void execute(@NotNull Task task) {

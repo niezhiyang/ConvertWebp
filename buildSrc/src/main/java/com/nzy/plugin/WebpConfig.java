@@ -19,7 +19,7 @@ public class WebpConfig {
     /**
      * 大图白名单
      */
-    public String[] bigImageWhiteList = new String[]{};
+    public ArrayList<String> bigImageWhiteList = new ArrayList<String>();
 
 
     /**
@@ -34,6 +34,8 @@ public class WebpConfig {
 
 
     public boolean isSupportAlphaWebp = true;
+
+    public int maxSize = 1024*1024;
 
 
 }

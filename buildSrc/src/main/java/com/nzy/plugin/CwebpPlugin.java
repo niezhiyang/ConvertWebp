@@ -14,6 +14,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.tasks.TaskInputs;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -133,62 +134,67 @@ public class CwebpPlugin implements Plugin<Project> {
         // 创建自己任务
         Task convertTask = mProject.task("convertTask" + capitalizeName);
 
+        // 第一种拿到资源
+        getRes1(capitalizeName);
 
-//        //获得android的mergeDebugResources任务
-//        final Task proguardTask =
-//                mProject.getTasks().findByName("merge"+capitalizeName+"Resources");
 
-        imageFileList.clear();
-        cacheList.clear();
-        convertTask.doLast(new Action<Task>() {
-            @Override
-            public void execute(@NotNull Task task) {
-                Set<File> files = variant.getAllRawAndroidResources().getFiles();
-//                cacheList.clear();
-//                imageFileList.clear();
-                //遍历资源文件目录
-                for (File file : files) {
-                    traverseResDir(file);
+        // 第二种拿到资源
+        //getRes2(variant, mergeResources, convertTask);
+
+
+        // 第三种拿到资源
+        //getRes3(mergeResources);
+
+    }
+
+
+    /**
+     * 第一种拿到资源的方法
+     *
+     * @param capitalizeName
+     */
+    private void getRes1(String capitalizeName) {
+        // 获得android的mergeDebugResources/mergeReleaseResources任务
+        final Task mergeResTask =
+                mProject.getTasks().findByName("merge" + capitalizeName + "Resources");
+        if (mergeResTask != null) {
+            imageFileList.clear();
+            cacheList.clear();
+            mergeResTask.doFirst(new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    //资源输出的所有文件
+                    TaskInputs outputs = mergeResTask.getInputs();
+                    Set<File> files = outputs.getFiles().getFiles();
+                    for (File file : files) {
+                        // 遍历文件夹 拿到 所有的 图片
+                        traverseDir(file);
+                    }
+                    // 开始压缩
+                    startConvertAndCompress();
                 }
-                dispatchOptimizeTask();
-            }
-        });
-
-
-        mergeResources.dependsOn(mProject.getTasks().findByName(convertTask.getName()));
-
-
+            });
+        }
     }
 
     /**
      * 处理图片压缩任务
-     *
      */
-    private void dispatchOptimizeTask() {
-        if (imageFileList.isEmpty() ) {
-            mLogger.log(LogLevel.ERROR,"问题1111111111111111 imageFileList: "+imageFileList.size());
+    private void startConvertAndCompress() {
+        if (imageFileList.isEmpty()) {
             return;
         }
         for (File file : imageFileList) {
-
-            optimizeImage(file);
+            // 压缩
+            CompressUtil.compressImg(file, mProject);
+            // 转化webp
+            ConvertWebpUtil.securityFormatWebp(file, mConfig, mProject, mLogger);
         }
 
     }
 
-    private void optimizeImage(File file) {
-
-        String path  = file.getPath();
-        if (new File(path).exists()) {
-            oldSize += new File(path).length();
-        }
-        ConvertWebpUtil.securityFormatWebp(file, mConfig,mProject,mLogger);
-        countNewSize(path);
-        mLogger.log(LogLevel.ERROR,"问题22222222222");
-    }
 
     private void countNewSize(String path) {
-        mLogger.log(LogLevel.ERROR,"问题333333333333333");
         if (new File(path).exists()) {
             newSize += new File(path).length();
         } else {
@@ -198,7 +204,7 @@ public class CwebpPlugin implements Plugin<Project> {
                 newSize += new File(webpPath).length();
             }
         }
-        mLogger.log(LogLevel.ERROR,TAG+"压缩的大小：oldSize - newSize = "+(oldSize-newSize));
+        mLogger.log(LogLevel.ERROR, TAG + "压缩的大小：oldSize - newSize = " + (oldSize - newSize));
     }
 
     /**
@@ -206,7 +212,7 @@ public class CwebpPlugin implements Plugin<Project> {
      *
      * @param file
      */
-    private void traverseResDir(File file) {
+    private void traverseDir(File file) {
         if (cacheList.contains(file.getAbsolutePath())) {
             return;
         } else {
@@ -215,7 +221,7 @@ public class CwebpPlugin implements Plugin<Project> {
         if (file.isDirectory()) {
             for (File listFile : file.listFiles()) {
                 if (listFile.isDirectory()) {
-                    traverseResDir(listFile);
+                    traverseDir(listFile);
                 } else {
                     filterImage(listFile);
                 }
@@ -236,13 +242,15 @@ public class CwebpPlugin implements Plugin<Project> {
             return;
         }
 //        // 如果图片尺寸合规,并且图片是大图,大图白名单没有图片
-//        if ((mConfig.isCheckSize && ImageUtil.isBigSizeImage(file, mConfig.maxSize)) && !mConfig.bigImageWhiteList.contains(file.getName())) {
-//            // 添加到大图列表
-//            iBigImage.onBigImage(file);
-//        }
+        if ((mConfig.isCheckSize && ImageUtil.isBigSizeImage(file, mConfig.maxSize)) && !mConfig.bigImageWhiteList.contains(file.getName())) {
+            // 添加到大图列表
+            bigImgList.add(file.getName());
+            mLogger.log(LogLevel.ERROR, TAG + "大图片地址：" + imageFileList.size() + "-----" + file.getAbsolutePath());
+            throw new GradleException("有个图片你需要吃处理一下");
+        }
         // 将图片添加到图片目录
         imageFileList.add(file);
-        mLogger.log(LogLevel.ERROR, TAG + "图片地址："+imageFileList.size()+"-----"+file.getAbsolutePath());
+        mLogger.log(LogLevel.ERROR, TAG + "图片地址：" + imageFileList.size() + "-----" + file.getAbsolutePath());
 
     }
 
@@ -263,5 +271,45 @@ public class CwebpPlugin implements Plugin<Project> {
         });
     }
 
+
+    /**
+     * 第三种拿到资源的方法
+     *
+     * @param mergeResources
+     */
+    private void getRes3(MergeResources mergeResources) {
+        mergeResources.doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                TaskInputs outputs = task.getInputs();
+                Set<File> files = outputs.getFiles().getFiles();
+                //遍历资源文件目录
+                for (File file : files) {
+                    traverseDir(file);
+                }
+                startConvertAndCompress();
+            }
+        });
+    }
+
+    /**
+     * 第二种拿到资源的方法
+     *
+     * @param mergeResources
+     */
+    private void getRes2(ApplicationVariant variant, MergeResources mergeResources, Task convertTask) {
+        convertTask.doLast(new Action<Task>() {
+            @Override
+            public void execute(@NotNull Task task) {
+                Set<File> files = variant.getAllRawAndroidResources().getFiles();
+                //遍历资源文件目录
+                for (File file : files) {
+                    traverseDir(file);
+                }
+                startConvertAndCompress();
+            }
+        });
+        mergeResources.dependsOn(mProject.getTasks().findByName(convertTask.getName()));
+    }
 
 }

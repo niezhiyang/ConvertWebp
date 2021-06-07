@@ -51,10 +51,7 @@ public class ConvertWebpUtil {
             project.getLogger().log(LogLevel.ERROR, imgFile.getName() + " 大小是："+imgFile.length()+"----web的大小是："+webpFile.length());
 
 
-            if(imgFile.getName().contains("_for")){
-                project.getLogger().log(LogLevel.ERROR, "pppppppppppppp:"+imgFile.getPath());
 
-            }
             if (webpFile.length() < imgFile.length()) {
                 if (imgFile.exists()) {
                     imgFile.delete();
@@ -64,7 +61,6 @@ public class ConvertWebpUtil {
                 if (webpFile.exists()) {
                     webpFile.delete();
                 }
-                project.getLogger().log(LogLevel.ERROR, imgFile.getName() + " do not convert webp because the size become larger!");
             }
         }
     }

@@ -14,18 +14,16 @@ import javax.imageio.ImageIO;
  */
 public class ImageUtil {
 
-    public static boolean isImage(File file){
+    public static boolean isImage(File file) {
         return (file.getName().endsWith("jpg") ||
                 file.getName().endsWith("png") ||
                 file.getName().endsWith("jpeg")
         ) && !file.getName().endsWith("9.png");
     }
 
-    public static boolean isBigSizeImage(File file){
-        return (file.getName().endsWith("jpg") ||
-                file.getName().endsWith("png") ||
-                file.getName().endsWith("jpeg")
-        ) && !file.getName().endsWith(".9");
+    public static boolean isBigSizeImage(File file, int maxSize) {
+
+        return file.length() > maxSize;
     }
 
     public static boolean isAlphaPNG(File file) {
@@ -44,10 +42,10 @@ public class ImageUtil {
     public static void convert2Webp(File imgFile, Logger logger) {
         if (isImage(imgFile)) {
             File webpFile =
-                    new File(imgFile.getPath().substring(0, imgFile.getPath().lastIndexOf("."))+".webp");
+                    new File(imgFile.getPath().substring(0, imgFile.getPath().lastIndexOf(".")) + ".webp");
 
-            logger.log(LogLevel.ERROR,"convert2Webp "+webpFile.getPath() + "----"+imgFile.getPath());
-            Tools.cmd("cwebp", imgFile.getPath()+" -o +"+webpFile.getPath()+" -m 6 -quiet");
+            logger.log(LogLevel.ERROR, "convert2Webp " + webpFile.getPath() + "----" + imgFile.getPath());
+            Tools.cmd("cwebp", imgFile.getPath() + " -o +" + webpFile.getPath() + " -m 6 -quiet");
             if (webpFile.length() < imgFile.length()) {
                 if (imgFile.exists()) {
                     imgFile.delete();

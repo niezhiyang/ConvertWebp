@@ -12,6 +12,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ImageView iv = (ImageView)findViewById(R.id.iv_test) ;
-        iv.setImageResource(R.mipmap.test_for_jpeg);
+        iv.setImageResource(R.drawable.test_jpeg_library);
     }
 }

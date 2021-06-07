@@ -1,20 +1,19 @@
-apply plugin: 'com.android.application'
-apply plugin: 'com.nzy.plugin'
-
+plugins {
+    id 'com.android.library'
+}
 
 android {
-
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.nzy.myapplication"
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
@@ -33,16 +32,7 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.3.0'
     implementation 'com.google.android.material:material:1.3.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    implementation project(":testlibrary")
-}
-
-webpConfig {
-    quality = 50
-    whiteList = [ //默认为空，如果添加，对图片不进行任何处理
-                  "icon_launcher.png"
-    ]
 }

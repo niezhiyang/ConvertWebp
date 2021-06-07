@@ -29,7 +29,6 @@ public class Tools {
             LoggerUtil.log("Tools: cmdStr == null");
             return;
         }
-        LoggerUtil.log("Tools: cmdStr == outputMessage");
         outputMessage(cmdStr);
 
     }
@@ -39,7 +38,6 @@ public class Tools {
         try {
             process = Runtime.getRuntime().exec(cmd);
             process.waitFor();
-            LoggerUtil.log("Tools: 成功了");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             LoggerUtil.log("Tools: 错误了"+e.toString());
